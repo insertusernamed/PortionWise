@@ -2,7 +2,23 @@
 <html>
 
 <head>
-    <title>{{title}}</title>
+    <title>{{#if title}}{{title}} - PortionWise{{else}}PortionWise - Smart Portfolio Rebalancing{{/if}}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+    <link rel="icon" type="image/png" href="/images/favicon.png">
+
+    <!-- OpenGraph Tags -->
+    <meta property="og:title"
+        content="{{#if title}}{{title}} - PortionWise{{else}}PortionWise - Smart Portfolio Rebalancing{{/if}}">
+    <meta property="og:description"
+        content="Easily rebalance your investment portfolio with smart calculations and visualization tools.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://portionwise.com">
+    <meta property="og:site_name" content="PortionWise">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">

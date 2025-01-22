@@ -107,6 +107,7 @@ router.get("/", async function (req, res, next) {
             }
 
             res.render("index", {
+                title: portfolio.length > 0 ? "Your Portfolio" : "Welcome",
                 portfolio: portfolio,
                 totalPortfolioValue: totalValue.toFixed(2),
                 originalPortfolioValue: originalTotalValue.toFixed(2),
