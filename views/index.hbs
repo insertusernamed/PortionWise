@@ -1,16 +1,19 @@
-<h1>PortionWise</h1>
+<div class="title-container">
+    <h1><span class="title-portion">Portion</span><span class="title-wise">Wise</span></h1>
+    <p class="subtitle">Smart Portfolio Rebalancing</p>
+</div>
 
 <div class="portfolio-entry">
-    <h2>Add Position</h2>
+    <h2>Add to Portfolio</h2>
     <form action="/portfolio/add" method="POST">
         <div class="search-field">
-            <input type="text" name="symbol" placeholder="Enter stock/ETF symbol" required>
+            <input type="text" name="symbol" placeholder="Search stocks or ETFs..." required>
             <button type="button" class="search-symbol">Search</button>
         </div>
         <div class="symbol-results"></div>
         <div class="shares-input" style="display: none;">
             <input type="number" name="shares" placeholder="Number of shares" required min="0" step="any">
-            <button type="submit">Add to Portfolio</button>
+            <button type="submit">Add Position</button>
         </div>
     </form>
 </div>
@@ -18,54 +21,80 @@
 {{#if portfolio}}
 <div class="current-portfolio">
     <h2>Your Portfolio</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Symbol</th>
-                <th>Shares</th>
-                <th>Current Price</th>
-                <th>Total Value</th>
-                <th>Current %</th>
-                <th>Target %</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {{#each portfolio}}
-            <tr>
-                <td>{{symbol}}</td>
-                <td>{{shares}}</td>
-                <td>${{price}}</td>
-                <td>${{totalValue}}</td>
-                <td>{{currentPercentage}}%</td>
-                <td>
-                    <input type="number" class="target-percentage" data-symbol="{{symbol}}" value="{{targetPercentage}}"
-                        min="0" max="100">%
-                </td>
-                <td>
-                    <button class="remove-position" data-symbol="{{symbol}}">Remove</button>
-                </td>
-            </tr>
-            {{/each}}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3"><strong>Total Portfolio Value:</strong></td>
-                <td>${{totalPortfolioValue}}</td>
-                <td colspan="2">
-                    <button type="button" id="calculate-rebalance" class="primary-button">
-                        Calculate Rebalancing
-                    </button>
-                </td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
+    <div class="portfolio-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Shares</th>
+                    <th>Current Price</th>
+                    <th>Total Value</th>
+                    <th>Current %</th>
+                    <th>Target %</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each portfolio}}
+                <tr>
+                    <td>{{symbol}}</td>
+                    <td>{{shares}}</td>
+                    <td>${{price}}</td>
+                    <td>${{totalValue}}</td>
+                    <td>{{currentPercentage}}%</td>
+                    <td>
+                        <div class="target-wrapper">
+                            <input type="number" class="target-percentage" data-symbol="{{symbol}}"
+                                value="{{targetPercentage}}" min="0" max="100">
+                            <span class="percentage-symbol">%</span>
+                        </div>
+                    </td>
+                    <td>
+                        <button class="remove-position" data-symbol="{{symbol}}">Remove</button>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3"><strong>Total Portfolio Value:</strong></td>
+                    <td>${{totalPortfolioValue}}</td>
+                    <td colspan="2">
+                        <button type="button" id="calculate-rebalance" class="primary-button">
+                            Calculate Rebalancing
+                        </button>
+                    </td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <div class="charts-container">
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3>Current Allocation</h3>
+                <span class="chart-indicator current">Current</span>
+            </div>
+            <canvas id="currentAllocation"></canvas>
+        </div>
+        <div class="chart-container">
+            <div class="chart-header">
+                <h3>Target Allocation</h3>
+                <span class="chart-indicator target">Target</span>
+            </div>
+            <div class="target-chart-wrapper">
+                <canvas id="targetAllocation"></canvas>
+                <div class="empty-target-message" style="display: none;">
+                    <p>No target allocations set</p>
+                    <p class="help-text">Enter target percentages in the table above to see your target allocation</p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
 {{#if rebalancing}}
 <div class="rebalancing-suggestions">
-    <h2>Rebalancing Suggestions</h2>
+    <h2>Rebalancing Plan</h2>
     <ul>
         {{#each rebalancing}}
         <li>{{this}}</li>
