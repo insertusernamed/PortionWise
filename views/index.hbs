@@ -1,0 +1,76 @@
+<h1>PortionWise</h1>
+
+<div class="portfolio-entry">
+    <h2>Add Position</h2>
+    <form action="/portfolio/add" method="POST">
+        <div class="search-field">
+            <input type="text" name="symbol" placeholder="Enter stock/ETF symbol" required>
+            <button type="button" class="search-symbol">Search</button>
+        </div>
+        <div class="symbol-results"></div>
+        <div class="shares-input" style="display: none;">
+            <input type="number" name="shares" placeholder="Number of shares" required min="0" step="any">
+            <button type="submit">Add to Portfolio</button>
+        </div>
+    </form>
+</div>
+
+{{#if portfolio}}
+<div class="current-portfolio">
+    <h2>Your Portfolio</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Shares</th>
+                <th>Current Price</th>
+                <th>Total Value</th>
+                <th>Current %</th>
+                <th>Target %</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each portfolio}}
+            <tr>
+                <td>{{symbol}}</td>
+                <td>{{shares}}</td>
+                <td>${{price}}</td>
+                <td>${{totalValue}}</td>
+                <td>{{currentPercentage}}%</td>
+                <td>
+                    <input type="number" class="target-percentage" data-symbol="{{symbol}}" value="{{targetPercentage}}"
+                        min="0" max="100">%
+                </td>
+                <td>
+                    <button class="remove-position" data-symbol="{{symbol}}">Remove</button>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3"><strong>Total Portfolio Value:</strong></td>
+                <td>${{totalPortfolioValue}}</td>
+                <td colspan="2">
+                    <button type="button" id="calculate-rebalance" class="primary-button">
+                        Calculate Rebalancing
+                    </button>
+                </td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+{{#if rebalancing}}
+<div class="rebalancing-suggestions">
+    <h2>Rebalancing Suggestions</h2>
+    <ul>
+        {{#each rebalancing}}
+        <li>{{this}}</li>
+        {{/each}}
+    </ul>
+</div>
+{{/if}}
+{{/if}}

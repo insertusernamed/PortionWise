@@ -1,0 +1,155 @@
+body {
+    padding: 50px;
+    font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+    color: #00B7FF;
+}
+
+.stock-info {
+    margin: 20px 0;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+form {
+    margin: 20px 0;
+}
+
+input[type="text"] {
+    padding: 8px;
+    margin-right: 10px;
+    width: 200px;
+}
+
+button {
+    padding: 8px 15px;
+    background-color: #00B7FF;
+    border: none;
+    color: white;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
+button:hover {
+    background-color: #0090cc;
+}
+
+.portfolio-entry {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+}
+
+.search-field {
+    margin-bottom: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+th,
+td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #f0f0f0;
+}
+
+.target-percentage {
+    width: 60px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    text-align: right;
+}
+
+.rebalancing-suggestions {
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #e8f4ff;
+    border-radius: 5px;
+}
+
+.rebalancing-suggestions li {
+    margin: 10px 0;
+    padding: 8px;
+    background-color: white;
+    border-radius: 3px;
+    border-left: 4px solid #28a745;
+}
+
+.remove-position {
+    background-color: #ff4444;
+}
+
+.remove-position:hover {
+    background-color: #cc0000;
+}
+
+.search-results {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-results li {
+    padding: 0;
+    margin: 0;
+}
+
+.select-symbol {
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: #333;
+    background-color: white;
+    transition: background-color 0.2s;
+}
+
+.select-symbol:hover {
+    background-color: #e9ecef;
+    color: #000;
+}
+
+.error {
+    color: #ff4444;
+    margin: 10px 0;
+}
+
+.shares-input {
+    margin-top: 15px;
+}
+
+.shares-input input {
+    margin-right: 10px;
+}
+
+.primary-button {
+    background-color: #28a745;
+    color: white;
+    font-weight: bold;
+}
+
+.primary-button:hover {
+    background-color: #218838;
+}
