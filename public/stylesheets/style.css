@@ -898,3 +898,55 @@ tfoot td {
     background: var(--color-primary);
     color: white;
 }
+
+.portfolio-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.currency-selector {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.currency-selector:hover {
+    border-color: var(--color-primary);
+}
+
+.currency-value {
+    position: relative;
+}
+
+.currency-value.cad-mode {
+    text-decoration: underline dotted;
+    text-underline-offset: 4px;
+}
+
+.currency-tooltip {
+    position: absolute;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 4px 8px;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+    z-index: 1000;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 4px;
+}
+
+.currency-value:hover .currency-tooltip {
+    opacity: 1;
+}

@@ -7,6 +7,56 @@ document.addEventListener("DOMContentLoaded", function () {
     const symbolResults = document.querySelector(".symbol-results");
     const form = document.querySelector(".portfolio-entry form");
 
+    // Currency selector
+    const currencySelector = document.getElementById("currency-selector");
+    if (currencySelector) {
+        // Set initial value based on URL parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        currencySelector.value = urlParams.get("currency") || "USD";
+
+        currencySelector.addEventListener("change", async function () {
+            const newCurrency = this.value;
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set("currency", newCurrency);
+            window.location.href = currentUrl.toString();
+        });
+    }
+
+    // Add currency value tooltips
+    const setupCurrencyTooltips = () => {
+        const currencyValues = document.querySelectorAll(".currency-value");
+        const currentCurrency =
+            document.getElementById("currency-selector").value;
+
+        currencyValues.forEach((element) => {
+            // Remove any existing tooltips
+            const existingTooltip = element.querySelector(".currency-tooltip");
+            if (existingTooltip) {
+                existingTooltip.remove();
+            }
+
+            // Toggle CAD mode class for styling
+            element.classList.toggle("cad-mode", currentCurrency === "CAD");
+
+            if (currentCurrency === "CAD") {
+                const usdValue = element.dataset.usd;
+                const tooltip = document.createElement("div");
+                tooltip.className = "currency-tooltip";
+                tooltip.textContent = `USD: $${usdValue}`;
+                element.appendChild(tooltip);
+            }
+        });
+    };
+
+    // Call on load and currency change
+    if (currencySelector) {
+        setupCurrencyTooltips();
+        currencySelector.addEventListener("change", () => {
+            // Wait for page reload
+            setTimeout(setupCurrencyTooltips, 500);
+        });
+    }
+
     // Chart instances
     let currentChart = null;
     let targetChart = null;

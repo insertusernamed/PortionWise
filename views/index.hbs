@@ -23,7 +23,13 @@
 
 {{#if portfolio}}
 <div class="current-portfolio">
-    <h2>Your Portfolio</h2>
+    <div class="portfolio-header">
+        <h2>Your Portfolio</h2>
+        <select id="currency-selector" class="currency-selector">
+            <option value="USD">USD</option>
+            <option value="CAD">CAD</option>
+        </select>
+    </div>
     <div class="portfolio-table">
         <table>
             <thead>
@@ -42,8 +48,9 @@
                 <tr>
                     <td>{{symbol}}</td>
                     <td>{{shares}}</td>
-                    <td>${{formatNumber price}}</td>
-                    <td>${{formatNumber totalValue}}</td>
+                    <td>{{currentCurrency}}{{formatNumber price}}</td>
+                    <td data-usd="{{formatNumber originalValue}}" data-cad="{{formatNumber totalValue}}"
+                        class="currency-value">{{currentCurrency}}{{formatNumber totalValue}}</td>
                     <td>{{currentPercentage}}%</td>
                     <td>
                         <div class="target-wrapper">
@@ -61,7 +68,9 @@
             <tfoot>
                 <tr>
                     <td colspan="3"><strong>Total Portfolio Value:</strong></td>
-                    <td>${{formatNumber totalPortfolioValue}}</td>
+                    <td data-usd="{{formatNumber originalPortfolioValue}}"
+                        data-cad="{{formatNumber totalPortfolioValue}}" class="currency-value">
+                        {{currentCurrency}}{{formatNumber totalPortfolioValue}}</td>
                     <td colspan="2">
                         <button type="button" id="calculate-rebalance" class="primary-button">
                             Calculate Rebalancing
@@ -111,7 +120,8 @@
             <div class="step-details">
                 <div class="transaction-info">
                     <p class="action">{{action}}</p>
-                    <p class="value">${{formatNumber value}}</p>
+                    <p class="value currency-value" data-usd="{{formatNumber originalValue}}"
+                        data-cad="{{formatNumber value}}">{{currentCurrency}}{{formatNumber value}}</p>
                 </div>
                 <div class="portfolio-state">
                     <div class="portfolio-comparison">
@@ -123,7 +133,7 @@
                                     <div class="holding-symbol">{{symbol}}</div>
                                     <div class="holding-shares">{{shares}} shares</div>
                                     <div class="holding-percentage {{percentageChange direction}}">{{percentage}}%</div>
-                                    <div class="holding-value">${{formatNumber value}}</div>
+                                    <div class="holding-value">{{currentCurrency}}{{formatNumber value}}</div>
                                 </div>
                                 {{/each}}
                             </div>
@@ -137,7 +147,7 @@
                                     <div class="holding-symbol">{{symbol}}</div>
                                     <div class="holding-shares">{{shares}} shares</div>
                                     <div class="holding-percentage {{percentageChange direction}}">{{percentage}}%</div>
-                                    <div class="holding-value">${{formatNumber value}}</div>
+                                    <div class="holding-value">{{currentCurrency}}{{formatNumber value}}</div>
                                 </div>
                                 {{/each}}
                             </div>
@@ -147,11 +157,12 @@
                         <div class="step-total">
                             <div class="step-value-main">
                                 <span class="step-label">Portfolio Value</span>
-                                <span class="step-amount">${{formatNumber totalValue}}</span>
+                                <span class="step-amount">{{currentCurrency}}{{formatNumber totalValue}}</span>
                             </div>
                             {{#if valueChange}}
                             <div class="step-value-change {{valueChange.direction}}">
-                                <span class="change-amount">${{formatNumber valueChange.amount}}</span>
+                                <span class="change-amount">{{currentCurrency}}{{formatNumber
+                                    valueChange.amount}}</span>
                                 <span class="change-percentage">({{valueChange.percentage}}%)</span>
                             </div>
                             {{/if}}
@@ -170,14 +181,20 @@
                 <div class="summary-icon">💰</div>
                 <div class="summary-details">
                     <span class="summary-label">Final Portfolio Value</span>
-                    <span class="summary-amount">${{formatNumber rebalancing.finalValue}}</span>
+                    <span class="summary-amount currency-value"
+                        data-usd="{{formatNumber rebalancing.originalFinalValue}}"
+                        data-cad="{{formatNumber rebalancing.finalValue}}">{{currentCurrency}}{{formatNumber
+                        rebalancing.finalValue}}</span>
                 </div>
             </div>
             <div class="summary-card cash-required">
                 <div class="summary-icon">💵</div>
                 <div class="summary-details">
                     <span class="summary-label">Cash Required</span>
-                    <span class="summary-amount">${{formatNumber rebalancing.cashRequired}}</span>
+                    <span class="summary-amount currency-value"
+                        data-usd="{{formatNumber rebalancing.originalCashRequired}}"
+                        data-cad="{{formatNumber rebalancing.cashRequired}}">{{currentCurrency}}{{formatNumber
+                        rebalancing.cashRequired}}</span>
                 </div>
             </div>
             <div class="summary-card trade-count">

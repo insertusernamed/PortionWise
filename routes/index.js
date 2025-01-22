@@ -1,12 +1,15 @@
 var express = require("express");
 var router = express.Router();
 const yahooFinance = require("yahoo-finance2").default;
+const axios = require("axios");
 
 /**
  * In-memory portfolio storage
  * TODO: Replace with database in production
  */
 let portfolio = [];
+let currentCurrency = "USD";
+let exchangeRate = 1;
 
 /**
  * Route handlers
@@ -15,22 +18,44 @@ let portfolio = [];
 router.get("/", async function (req, res, next) {
     try {
         if (portfolio.length > 0) {
+            const currency = req.query.currency || "USD";
+            let exchangeRate = 1;
+
+            try {
+                if (currency === "CAD") {
+                    const response = await axios.get(
+                        "https://api.exchangerate-api.com/v4/latest/USD"
+                    );
+                    exchangeRate = response.data.rates.CAD;
+                }
+            } catch (error) {
+                console.error("Exchange rate fetch failed:", error);
+            }
+
             // Update current prices and total values
             for (let position of portfolio) {
                 const quote = await yahooFinance.quote(position.symbol);
-                position.price = Number(quote.regularMarketPrice).toFixed(2);
+                const usdPrice = Number(quote.regularMarketPrice);
+                position.price = (usdPrice * exchangeRate).toFixed(2);
+                position.originalPrice = usdPrice.toFixed(2);
                 position.totalValue = (
-                    Number(position.price) * Math.floor(position.shares)
+                    Number(position.price) * position.shares
                 ).toFixed(2);
+                position.originalValue = (usdPrice * position.shares).toFixed(
+                    2
+                );
             }
 
-            // Calculate total value first
             const totalValue = portfolio.reduce(
                 (sum, pos) => sum + Number(pos.totalValue),
                 0
             );
+            const originalTotalValue = portfolio.reduce(
+                (sum, pos) => sum + Number(pos.originalValue),
+                0
+            );
 
-            // Then calculate percentages based on total
+            // Calculate percentages
             portfolio.forEach((pos) => {
                 pos.currentPercentage = (
                     (Number(pos.totalValue) / totalValue) *
@@ -38,19 +63,57 @@ router.get("/", async function (req, res, next) {
                 ).toFixed(2);
             });
 
-            // Rest of the route handler...
             const rebalancing = generateRebalancingSuggestions(
                 portfolio,
                 totalValue
             );
+
+            // Store original USD values before conversion
+            if (rebalancing.steps) {
+                rebalancing.steps.forEach((step) => {
+                    step.originalValue = step.value;
+                    step.value = (Number(step.value) * exchangeRate).toFixed(2);
+                    step.originalTotalValue = step.totalValue;
+                    step.totalValue = (
+                        Number(step.totalValue) * exchangeRate
+                    ).toFixed(2);
+                    if (step.valueChange) {
+                        step.valueChange.amount = (
+                            Number(step.valueChange.amount) * exchangeRate
+                        ).toFixed(2);
+                    }
+                    // Update holdings values
+                    step.holdings.forEach((holding) => {
+                        holding.value = (
+                            Number(holding.value) * exchangeRate
+                        ).toFixed(2);
+                    });
+                    step.beforeHoldings.forEach((holding) => {
+                        holding.value = (
+                            Number(holding.value) * exchangeRate
+                        ).toFixed(2);
+                    });
+                });
+                rebalancing.originalFinalValue = rebalancing.finalValue;
+                rebalancing.originalCashRequired = rebalancing.cashRequired;
+                rebalancing.finalValue = (
+                    Number(rebalancing.finalValue) * exchangeRate
+                ).toFixed(2);
+                rebalancing.cashRequired = (
+                    Number(rebalancing.cashRequired) * exchangeRate
+                ).toFixed(2);
+            }
+
             res.render("index", {
                 portfolio: portfolio,
                 totalPortfolioValue: totalValue.toFixed(2),
+                originalPortfolioValue: originalTotalValue.toFixed(2),
+                currentCurrency: currency === "CAD" ? "C$" : "$",
                 rebalancing:
                     Object.keys(rebalancing).length > 0 ? rebalancing : null,
             });
         } else {
-            res.render("index");
+            res.render("index", { currentCurrency: "$" });
         }
     } catch (err) {
         next(err);
@@ -394,5 +457,27 @@ function calculateProgress(currentState, targetState) {
 
     return 100 - totalDiff / 2; // Division by 2 because differences are counted twice
 }
+
+async function getExchangeRate(from, to) {
+    try {
+        const response = await axios.get(
+            `https://api.exchangerate-api.com/v4/latest/${from}`
+        );
+        return response.data.rates[to];
+    } catch (error) {
+        console.error("Exchange rate fetch failed:", error);
+        return 1;
+    }
+}
+
+router.get("/convert", async function (req, res) {
+    const { to } = req.query;
+    try {
+        const rate = await getExchangeRate("USD", to);
+        res.json({ rate });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to get exchange rate" });
+    }
+});
 
 module.exports = router;

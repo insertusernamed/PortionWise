@@ -27,8 +27,12 @@ hbs.registerHelper("percentageChange", function (direction) {
     }
 });
 
+// Update the formatNumber helper
 hbs.registerHelper("formatNumber", function (number) {
-    return new Intl.NumberFormat("en-US").format(number);
+    return new Intl.NumberFormat("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(number);
 });
 
 // view engine setup
