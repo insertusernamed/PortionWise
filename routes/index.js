@@ -3,13 +3,16 @@ var router = express.Router();
 const yahooFinance = require("yahoo-finance2").default;
 const axios = require("axios");
 
-/**
- * In-memory portfolio storage
- * TODO: Replace with database in production
- */
-let portfolio = [];
+// Remove the in-memory portfolio storage
+// let portfolio = [];
 let currentCurrency = "USD";
 let exchangeRate = 1;
+
+// Add this helper function to parse portfolio from request
+function getPortfolioFromRequest(req) {
+    const portfolioData = req.cookies.portfolio;
+    return portfolioData ? JSON.parse(portfolioData) : [];
+}
 
 /**
  * Route handlers
@@ -17,6 +20,7 @@ let exchangeRate = 1;
 // Home page - displays portfolio and rebalancing
 router.get("/", async function (req, res, next) {
     try {
+        const portfolio = getPortfolioFromRequest(req);
         if (portfolio.length > 0) {
             const currency = req.query.currency || "USD";
             const strategy = req.query.strategy || "both";
@@ -158,6 +162,8 @@ router.post("/portfolio/add", async function (req, res, next) {
         const normalizedSymbol = symbol.toUpperCase();
         const quote = await yahooFinance.quote(normalizedSymbol);
 
+        const portfolio = getPortfolioFromRequest(req);
+
         // Check if position already exists
         const existingPosition = portfolio.find(
             (p) => p.symbol.toUpperCase() === normalizedSymbol
@@ -174,6 +180,12 @@ router.post("/portfolio/add", async function (req, res, next) {
             });
         }
 
+        // Save updated portfolio in cookie
+        res.cookie("portfolio", JSON.stringify(portfolio), {
+            maxAge: 31536000000, // 1 year
+            httpOnly: true,
+        });
+
         res.redirect("/");
     } catch (err) {
         next(err);
@@ -183,9 +195,15 @@ router.post("/portfolio/add", async function (req, res, next) {
 // Update target percentage
 router.post("/portfolio/target", function (req, res, next) {
     const { symbol, target } = req.body;
+    const portfolio = getPortfolioFromRequest(req);
+
     const position = portfolio.find((p) => p.symbol === symbol);
     if (position) {
         position.targetPercentage = Number(target);
+        res.cookie("portfolio", JSON.stringify(portfolio), {
+            maxAge: 31536000000,
+            httpOnly: true,
+        });
     }
     res.json({ success: true });
 });
@@ -193,9 +211,17 @@ router.post("/portfolio/target", function (req, res, next) {
 // Remove position from portfolio
 router.delete("/portfolio/:symbol", function (req, res, next) {
     const { symbol } = req.params;
+    let portfolio = getPortfolioFromRequest(req);
+
     portfolio = portfolio.filter(
         (p) => p.symbol.toUpperCase() !== symbol.toUpperCase()
     );
+
+    res.cookie("portfolio", JSON.stringify(portfolio), {
+        maxAge: 31536000000,
+        httpOnly: true,
+    });
+
     res.json({ success: true });
 });
 
@@ -217,7 +243,7 @@ router.post("/portfolio/demo", async function (req, res, next) {
         ];
 
         // Clear existing portfolio
-        portfolio = [];
+        let portfolio = [];
 
         // Pick 3 random stocks
         const selectedStocks = [];
@@ -241,6 +267,12 @@ router.post("/portfolio/demo", async function (req, res, next) {
                 targetPercentage: 0,
             });
         }
+
+        // Save demo portfolio in cookie
+        res.cookie("portfolio", JSON.stringify(portfolio), {
+            maxAge: 31536000000, // 1 year
+            httpOnly: true,
+        });
 
         res.json({ success: true });
     } catch (err) {
