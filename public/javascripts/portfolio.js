@@ -179,6 +179,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const calculateButton = document.getElementById("calculate-rebalance");
     if (calculateButton) {
+        // Set initial strategy value from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const initialStrategy = urlParams.get("strategy") || "both";
+        document.querySelector(
+            `input[name="rebalance-strategy"][value="${initialStrategy}"]`
+        ).checked = true;
+
+        // Check if we need to scroll to rebalancing section
+        if (urlParams.get("scroll") === "rebalancing") {
+            const rebalancingSection = document.querySelector(
+                ".rebalancing-suggestions"
+            );
+            if (rebalancingSection) {
+                setTimeout(() => {
+                    rebalancingSection.scrollIntoView({ behavior: "smooth" });
+                }, 100);
+            }
+        }
+
         calculateButton.addEventListener("click", async () => {
             const targetInputs =
                 document.querySelectorAll(".target-percentage");
@@ -196,6 +215,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
+            const strategy = document.querySelector(
+                'input[name="rebalance-strategy"]:checked'
+            ).value;
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set("strategy", strategy);
+            currentUrl.searchParams.set("scroll", "rebalancing"); // Add scroll parameter
+
             const savePromises = Array.from(targetInputs).map((input) =>
                 fetch("/portfolio/target", {
                     method: "POST",
@@ -209,18 +235,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
                 await Promise.all(savePromises);
-                window.location.reload();
-
-                window.addEventListener("load", () => {
-                    const rebalancingSection = document.querySelector(
-                        ".rebalancing-suggestions"
-                    );
-                    if (rebalancingSection) {
-                        rebalancingSection.scrollIntoView({
-                            behavior: "smooth",
-                        });
-                    }
-                });
+                window.location.href = currentUrl.toString();
             } catch (error) {
                 console.error("Failed to save target percentages:", error);
             }

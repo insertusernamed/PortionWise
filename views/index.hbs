@@ -72,9 +72,25 @@
                         data-cad="{{formatNumber totalPortfolioValue}}" class="currency-value">
                         {{currentCurrency}}{{formatNumber totalPortfolioValue}}</td>
                     <td colspan="2">
-                        <button type="button" id="calculate-rebalance" class="primary-button">
-                            Calculate Rebalancing
-                        </button>
+                        <div class="rebalance-controls">
+                            <div class="strategy-pills">
+                                <label class="pill-option">
+                                    <input type="radio" name="rebalance-strategy" value="both" checked>
+                                    <span>Buy & Sell</span>
+                                </label>
+                                <label class="pill-option">
+                                    <input type="radio" name="rebalance-strategy" value="buy">
+                                    <span>Buy Only</span>
+                                </label>
+                                <label class="pill-option">
+                                    <input type="radio" name="rebalance-strategy" value="sell">
+                                    <span>Sell Only</span>
+                                </label>
+                            </div>
+                            <button type="button" id="calculate-rebalance" class="primary-button">
+                                Calculate Rebalancing
+                            </button>
+                        </div>
                     </td>
                     <td></td>
                 </tr>

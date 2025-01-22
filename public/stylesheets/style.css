@@ -19,23 +19,44 @@ html {
 /* Title styling */
 .title-container {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 4rem;
+    animation: fadeIn 0.8s ease-out;
 }
 
 .title-portion {
     color: var(--color-text);
     font-weight: 600;
+    font-size: 3.2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .title-wise {
     color: var(--color-primary);
     font-weight: 600;
+    font-size: 3.2rem;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+.title-wise::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    transform: scaleX(0);
+    animation: slideIn 0.6s ease-out 0.4s forwards;
 }
 
 .subtitle {
     color: var(--color-text-light);
-    margin-top: 0.5rem;
-    font-size: 1.1rem;
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out 0.6s forwards;
 }
 
 body {
@@ -74,6 +95,13 @@ h2 {
     box-shadow: var(--box-shadow);
     margin-bottom: 2rem;
     border: 1px solid var(--color-border);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: slideUp 0.6s ease-out;
+}
+
+.portfolio-entry:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
 }
 
 input[type="text"],
@@ -272,6 +300,14 @@ tfoot td {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
+    background: var(--color-background);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    transition: box-shadow 0.2s ease;
+}
+
+.search-field:focus-within {
+    box-shadow: 0 0 0 2px var(--color-primary);
 }
 
 .shares-input {
@@ -290,6 +326,8 @@ tfoot td {
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     margin-top: 2rem;
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out 0.4s forwards;
 }
 
 .chart-header {
@@ -892,6 +930,34 @@ tfoot td {
     background: var(--color-surface);
     border: 1px solid var(--color-primary);
     color: var(--color-primary);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.secondary-button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 120%;
+    height: 120%;
+    background: var(--color-primary);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    z-index: 0;
+    transition: transform 0.6s ease, opacity 0.6s ease;
+}
+
+.secondary-button:hover::after {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.1;
+}
+
+.secondary-button span {
+    position: relative;
+    z-index: 1;
 }
 
 .secondary-button:hover {
@@ -949,4 +1015,113 @@ tfoot td {
 
 .currency-value:hover .currency-tooltip {
     opacity: 1;
+}
+
+.rebalance-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.5rem 0;
+}
+
+.strategy-pills {
+    display: flex;
+    background: var(--color-background);
+    padding: 0.25rem;
+    border-radius: 2rem;
+    border: 1px solid var(--color-border);
+}
+
+.pill-option {
+    position: relative;
+    cursor: pointer;
+}
+
+.pill-option input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.pill-option span {
+    display: block;
+    padding: 0.5rem 1rem;
+    border-radius: 1.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.pill-option input:checked+span {
+    background: var(--color-primary);
+    color: white;
+}
+
+.pill-option:hover input:not(:checked)+span {
+    background: var(--color-surface);
+}
+
+#calculate-rebalance {
+    margin: 0;
+    white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+    .rebalance-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .strategy-pills {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.strategy-selector {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--border-radius);
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.strategy-selector:hover {
+    border-color: var(--color-primary);
+}
+
+/* Animation keyframes */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: scaleX(0);
+    }
+
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }

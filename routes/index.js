@@ -19,6 +19,7 @@ router.get("/", async function (req, res, next) {
     try {
         if (portfolio.length > 0) {
             const currency = req.query.currency || "USD";
+            const strategy = req.query.strategy || "both";
             let exchangeRate = 1;
 
             try {
@@ -36,14 +37,14 @@ router.get("/", async function (req, res, next) {
             for (let position of portfolio) {
                 const quote = await yahooFinance.quote(position.symbol);
                 const usdPrice = Number(quote.regularMarketPrice);
-                position.price = (usdPrice * exchangeRate).toFixed(2);
-                position.originalPrice = usdPrice.toFixed(2);
-                position.totalValue = (
-                    Number(position.price) * position.shares
+                position.price = Number(usdPrice * exchangeRate).toFixed(2);
+                position.originalPrice = Number(usdPrice).toFixed(2);
+                position.totalValue = Number(
+                    position.price * position.shares
                 ).toFixed(2);
-                position.originalValue = (usdPrice * position.shares).toFixed(
-                    2
-                );
+                position.originalValue = Number(
+                    usdPrice * position.shares
+                ).toFixed(2);
             }
 
             const totalValue = portfolio.reduce(
@@ -65,7 +66,8 @@ router.get("/", async function (req, res, next) {
 
             const rebalancing = generateRebalancingSuggestions(
                 portfolio,
-                totalValue
+                totalValue,
+                strategy
             );
 
             // Store original USD values before conversion
@@ -248,7 +250,11 @@ router.post("/portfolio/demo", async function (req, res, next) {
 /**
  * Portfolio rebalancing logic
  */
-function generateRebalancingSuggestions(portfolio, totalValue) {
+function generateRebalancingSuggestions(
+    portfolio,
+    totalValue,
+    strategy = "both"
+) {
     const totalTargetPercentage = portfolio.reduce(
         (sum, pos) => sum + (pos.targetPercentage || 0),
         0
@@ -270,7 +276,7 @@ function generateRebalancingSuggestions(portfolio, totalValue) {
     let previousValue = totalValue;
     let totalCashNeeded = 0;
 
-    // Calculate adjustments based on current state
+    // Calculate all adjustments
     const adjustments = currentPortfolio.map((position) => {
         const targetValue = (position.targetPercentage / 100) * totalValue;
         const currentValue = Number(position.totalValue);
@@ -288,8 +294,19 @@ function generateRebalancingSuggestions(portfolio, totalValue) {
         };
     });
 
+    // Filter adjustments based on strategy
+    let sells = [];
+    let buys = [];
+
+    if (strategy === "both" || strategy === "sell") {
+        sells = adjustments.filter((adj) => adj.sharesDiff < 0);
+    }
+
+    if (strategy === "both" || strategy === "buy") {
+        buys = adjustments.filter((adj) => adj.sharesDiff > 0);
+    }
+
     // Process sells first
-    const sells = adjustments.filter((adj) => adj.sharesDiff < 0);
     for (const sell of sells) {
         // Capture state before transaction
         const beforeHoldings = currentPortfolio.map((pos) => ({
@@ -362,7 +379,6 @@ function generateRebalancingSuggestions(portfolio, totalValue) {
     }
 
     // Process buys with similar updates
-    const buys = adjustments.filter((adj) => adj.sharesDiff > 0);
     for (const buy of buys) {
         // Capture state before transaction
         const beforeHoldings = currentPortfolio.map((pos) => ({

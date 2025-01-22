@@ -27,12 +27,26 @@ hbs.registerHelper("percentageChange", function (direction) {
     }
 });
 
-// Update the formatNumber helper
+// Update the formatNumber helper to handle null/undefined values
 hbs.registerHelper("formatNumber", function (number) {
+    if (number == null) return "0.00";
     return new Intl.NumberFormat("en-US", {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(number);
+    }).format(parseFloat(number) || 0);
+});
+
+// Add a new helper for currency formatting
+hbs.registerHelper("formatCurrency", function (number, currency) {
+    if (number == null) return "$0.00";
+    const symbol = currency === "CAD" ? "C$" : "$";
+    return (
+        symbol +
+        new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(parseFloat(number) || 0)
+    );
 });
 
 // view engine setup
