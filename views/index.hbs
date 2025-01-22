@@ -4,7 +4,10 @@
 </div>
 
 <div class="portfolio-entry">
-    <h2>Add to Portfolio</h2>
+    <div class="entry-header">
+        <h2>Add to Portfolio</h2>
+        <button type="button" id="demo-portfolio" class="secondary-button">Add Demo Portfolio</button>
+    </div>
     <form action="/portfolio/add" method="POST">
         <div class="search-field">
             <input type="text" name="symbol" placeholder="Search stocks or ETFs..." required>
@@ -39,8 +42,8 @@
                 <tr>
                     <td>{{symbol}}</td>
                     <td>{{shares}}</td>
-                    <td>${{price}}</td>
-                    <td>${{totalValue}}</td>
+                    <td>${{formatNumber price}}</td>
+                    <td>${{formatNumber totalValue}}</td>
                     <td>{{currentPercentage}}%</td>
                     <td>
                         <div class="target-wrapper">
@@ -58,7 +61,7 @@
             <tfoot>
                 <tr>
                     <td colspan="3"><strong>Total Portfolio Value:</strong></td>
-                    <td>${{totalPortfolioValue}}</td>
+                    <td>${{formatNumber totalPortfolioValue}}</td>
                     <td colspan="2">
                         <button type="button" id="calculate-rebalance" class="primary-button">
                             Calculate Rebalancing
@@ -92,14 +95,101 @@
         </div>
     </div>
 </div>
+
 {{#if rebalancing}}
 <div class="rebalancing-suggestions">
     <h2>Rebalancing Plan</h2>
-    <ul>
-        {{#each rebalancing}}
-        <li>{{this}}</li>
+
+    {{#if rebalancing.steps}}
+    <div class="rebalancing-steps">
+        {{#each rebalancing.steps}}
+        <div class="rebalancing-step">
+            <div class="step-header">
+                <h3>Step {{add @index 1}}</h3>
+                <span class="step-type {{type}}">{{type}}</span>
+            </div>
+            <div class="step-details">
+                <div class="transaction-info">
+                    <p class="action">{{action}}</p>
+                    <p class="value">${{formatNumber value}}</p>
+                </div>
+                <div class="portfolio-state">
+                    <div class="portfolio-comparison">
+                        <div class="before-state">
+                            <h4>Before This Step</h4>
+                            <div class="portfolio-grid">
+                                {{#each beforeHoldings}}
+                                <div class="holding-item">
+                                    <div class="holding-symbol">{{symbol}}</div>
+                                    <div class="holding-shares">{{shares}} shares</div>
+                                    <div class="holding-percentage {{percentageChange direction}}">{{percentage}}%</div>
+                                    <div class="holding-value">${{formatNumber value}}</div>
+                                </div>
+                                {{/each}}
+                            </div>
+                        </div>
+                        <div class="change-arrow">→</div>
+                        <div class="after-state">
+                            <h4>After This Step</h4>
+                            <div class="portfolio-grid">
+                                {{#each holdings}}
+                                <div class="holding-item">
+                                    <div class="holding-symbol">{{symbol}}</div>
+                                    <div class="holding-shares">{{shares}} shares</div>
+                                    <div class="holding-percentage {{percentageChange direction}}">{{percentage}}%</div>
+                                    <div class="holding-value">${{formatNumber value}}</div>
+                                </div>
+                                {{/each}}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-summary">
+                        <div class="step-total">
+                            <div class="step-value-main">
+                                <span class="step-label">Portfolio Value</span>
+                                <span class="step-amount">${{formatNumber totalValue}}</span>
+                            </div>
+                            {{#if valueChange}}
+                            <div class="step-value-change {{valueChange.direction}}">
+                                <span class="change-amount">${{formatNumber valueChange.amount}}</span>
+                                <span class="change-percentage">({{valueChange.percentage}}%)</span>
+                            </div>
+                            {{/if}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         {{/each}}
-    </ul>
+    </div>
+
+    <div class="final-state">
+        <h3>Transaction Summary</h3>
+        <div class="final-summary">
+            <div class="summary-card total-value">
+                <div class="summary-icon">💰</div>
+                <div class="summary-details">
+                    <span class="summary-label">Final Portfolio Value</span>
+                    <span class="summary-amount">${{formatNumber rebalancing.finalValue}}</span>
+                </div>
+            </div>
+            <div class="summary-card cash-required">
+                <div class="summary-icon">💵</div>
+                <div class="summary-details">
+                    <span class="summary-label">Cash Required</span>
+                    <span class="summary-amount">${{formatNumber rebalancing.cashRequired}}</span>
+                </div>
+            </div>
+            <div class="summary-card trade-count">
+                <div class="summary-icon">🔄</div>
+                <div class="summary-details">
+                    <span class="summary-label">Number of Trades</span>
+                    <span class="summary-amount">{{rebalancing.totalTrades}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/if}}
 </div>
 {{/if}}
 {{/if}}

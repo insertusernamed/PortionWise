@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+    // DOM element references
     const symbolInput = document.querySelector('input[name="symbol"]');
     const sharesContainer = document.querySelector(".shares-input");
     const sharesInput = document.querySelector('input[name="shares"]');
@@ -6,12 +7,17 @@ document.addEventListener("DOMContentLoaded", function () {
     const symbolResults = document.querySelector(".symbol-results");
     const form = document.querySelector(".portfolio-entry form");
 
-    // Handle search button click
+    // Chart instances
+    let currentChart = null;
+    let targetChart = null;
+
+    /**
+     * Search functionality
+     */
     searchButton.addEventListener("click", async () => {
         const symbol = symbolInput.value.toUpperCase();
         if (!symbol) return;
 
-        // Hide shares input when starting new search
         sharesContainer.style.display = "none";
 
         try {
@@ -20,7 +26,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
             const data = await response.json();
 
-            // Display results
             symbolResults.innerHTML = `
                 <ul class="search-results">
                     ${data
@@ -41,14 +46,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 </ul>
             `;
 
-            // Handle symbol selection
             symbolResults
                 .querySelectorAll(".select-symbol")
                 .forEach((button) => {
                     button.addEventListener("click", () => {
                         symbolInput.value = button.dataset.symbol;
                         symbolResults.innerHTML = "";
-                        // Show shares input after selection
                         sharesContainer.style.display = "block";
                         sharesInput.value = "";
                         sharesInput.focus();
@@ -61,7 +64,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Add enter key handling for search
     symbolInput.addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
             e.preventDefault();
@@ -69,7 +71,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Reset form when symbol input is cleared
     symbolInput.addEventListener("input", () => {
         if (!symbolInput.value) {
             sharesContainer.style.display = "none";
@@ -77,7 +78,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Handle form submission
+    /**
+     * Form handling
+     */
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
@@ -94,20 +97,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 }),
             });
 
-            // Clear form
             symbolInput.value = "";
             sharesInput.value = "";
             symbolResults.innerHTML = "";
             sharesContainer.style.display = "none";
 
-            // Refresh page to show updated portfolio
             window.location.reload();
         } catch (error) {
             console.error("Failed to add position:", error);
         }
     });
 
-    // Handle target percentage changes
     document.querySelectorAll(".target-percentage").forEach((input) => {
         input.addEventListener("change", async function () {
             const symbol = this.dataset.symbol;
@@ -127,7 +127,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    // Handle rebalancing calculation
     const calculateButton = document.getElementById("calculate-rebalance");
     if (calculateButton) {
         calculateButton.addEventListener("click", async () => {
@@ -147,7 +146,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // Ensure all target percentages are saved before reloading
             const savePromises = Array.from(targetInputs).map((input) =>
                 fetch("/portfolio/target", {
                     method: "POST",
@@ -163,7 +161,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 await Promise.all(savePromises);
                 window.location.reload();
 
-                // Add this after the page reloads
                 window.addEventListener("load", () => {
                     const rebalancingSection = document.querySelector(
                         ".rebalancing-suggestions"
@@ -180,45 +177,55 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Chart initialization
+    /**
+     * Chart initialization and updates
+     * Handles rendering of portfolio allocation charts
+     */
     function initializeCharts() {
         const portfolio = Array.from(document.querySelectorAll("tbody tr")).map(
-            (row) => ({
-                symbol: row.cells[0].textContent,
-                currentPercentage: parseFloat(row.cells[4].textContent),
-                targetPercentage: parseFloat(
-                    row.querySelector(".target-percentage").value || 0
-                ),
-            })
+            (row) => {
+                return {
+                    symbol: row.cells[0].textContent,
+                    currentPercentage: parseFloat(row.cells[4].textContent),
+                    targetPercentage: parseFloat(
+                        row.querySelector(".target-percentage").value || 0
+                    ),
+                };
+            }
         );
 
         if (portfolio.length === 0) return;
 
         const colors = [
-            "#20B15A", // Green
-            "#FF9800", // Orange
-            "#2196F3", // Blue
-            "#E91E63", // Pink
-            "#9C27B0", // Purple
-            "#FFC107", // Amber
-            "#00BCD4", // Cyan
-            "#F44336", // Red
+            "#20B15A",
+            "#FF9800",
+            "#2196F3",
+            "#E91E63",
+            "#9C27B0",
+            "#FFC107",
+            "#00BCD4",
+            "#F44336",
         ];
 
-        // Shared chart options
-        const chartOptions = {
+        if (currentChart) {
+            currentChart.destroy();
+        }
+        if (targetChart) {
+            targetChart.destroy();
+        }
+
+        const chartConfig = {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
                 legend: {
                     position: "bottom",
                     labels: {
-                        fontColor: "white", // Add explicit fontColor
+                        color: "white",
                         font: {
                             size: 12,
                             family: "Inter",
                         },
-                        color: "white", // Keep both for compatibility
                         padding: 10,
                         usePointStyle: true,
                         boxWidth: 8,
@@ -245,33 +252,33 @@ document.addEventListener("DOMContentLoaded", function () {
                     borderWidth: 1,
                     callbacks: {
                         label: function (context) {
-                            return `${context.label}: ${context.parsed}%`;
+                            const number = new Intl.NumberFormat(
+                                "en-US"
+                            ).format(context.parsed);
+                            return `${context.label}: ${number}%`;
                         },
                     },
                 },
             },
         };
 
-        const currentChart = new Chart(
-            document.getElementById("currentAllocation"),
-            {
-                type: "doughnut",
-                data: {
-                    labels: portfolio.map((p) => p.symbol),
-                    datasets: [
-                        {
-                            data: portfolio.map((p) => p.currentPercentage),
-                            backgroundColor: colors,
-                            borderWidth: 2,
-                            borderColor: "var(--color-surface)",
-                        },
-                    ],
-                },
-                options: chartOptions,
-            }
-        );
+        const currentCtx = document.getElementById("currentAllocation");
+        currentChart = new Chart(currentCtx, {
+            type: "doughnut",
+            data: {
+                labels: portfolio.map((p) => p.symbol),
+                datasets: [
+                    {
+                        data: portfolio.map((p) => p.currentPercentage),
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: "var(--color-surface)",
+                    },
+                ],
+            },
+            options: chartConfig,
+        });
 
-        // Check if any target percentages are set
         const hasTargets = portfolio.some((p) => p.targetPercentage > 0);
         const emptyMessage = document.querySelector(".empty-target-message");
         const targetCanvas = document.getElementById("targetAllocation");
@@ -281,41 +288,54 @@ document.addEventListener("DOMContentLoaded", function () {
             if (targetCanvas) targetCanvas.style.display = "none";
         } else {
             if (emptyMessage) emptyMessage.style.display = "none";
-            if (targetCanvas) targetCanvas.style.display = "block";
-
-            // Create target allocation chart only if there are targets
-            const targetChart = new Chart(targetCanvas, {
-                type: "doughnut",
-                data: {
-                    labels: portfolio.map((p) => p.symbol),
-                    datasets: [
-                        {
-                            data: portfolio.map((p) => p.targetPercentage),
-                            backgroundColor: colors,
-                            borderWidth: 2,
-                            borderColor: "var(--color-surface)",
-                        },
-                    ],
-                },
-                options: chartOptions,
-            });
+            if (targetCanvas) {
+                targetCanvas.style.display = "block";
+                targetChart = new Chart(targetCanvas, {
+                    type: "doughnut",
+                    data: {
+                        labels: portfolio.map((p) => p.symbol),
+                        datasets: [
+                            {
+                                data: portfolio.map((p) => p.targetPercentage),
+                                backgroundColor: colors,
+                                borderWidth: 2,
+                                borderColor: "var(--color-surface)",
+                            },
+                        ],
+                    },
+                    options: chartConfig,
+                });
+            }
         }
     }
 
-    // Initialize charts if portfolio exists
+    /**
+     * Event listeners setup
+     */
     if (document.querySelector(".current-portfolio")) {
         initializeCharts();
     }
 
-    // Update charts when target percentages change
     document.querySelectorAll(".target-percentage").forEach((input) => {
-        input.addEventListener("change", () => {
-            // Wait for the target update to complete
-            setTimeout(initializeCharts, 100);
+        input.addEventListener("change", async function () {
+            const symbol = this.dataset.symbol;
+            const target = this.value;
+
+            try {
+                await fetch("/portfolio/target", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ symbol, target }),
+                });
+                initializeCharts();
+            } catch (error) {
+                console.error("Failed to update target:", error);
+            }
         });
     });
 
-    // Handle remove position buttons
     document.querySelectorAll(".remove-position").forEach((button) => {
         button.addEventListener("click", async function () {
             const symbol = this.dataset.symbol;
@@ -346,4 +366,24 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+
+    const demoButton = document.getElementById("demo-portfolio");
+    if (demoButton) {
+        demoButton.addEventListener("click", async () => {
+            try {
+                const response = await fetch("/portfolio/demo", {
+                    method: "POST",
+                });
+
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    throw new Error("Failed to generate demo portfolio");
+                }
+            } catch (error) {
+                console.error("Demo portfolio generation failed:", error);
+                alert("Failed to generate demo portfolio. Please try again.");
+            }
+        });
+    }
 });
